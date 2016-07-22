@@ -47,12 +47,12 @@ var escPosVfdCommands = map[string]string{
 }
 
 func main() {
-	port0 := os.Getenv("PORT0")
-	port1 := os.Getenv("PORT1")
+	port0 := os.Getenv("PORT_BARCODE_SCANNER")
+	port1 := os.Getenv("PORT_POLE_DISPLAY")
 
 	if port0 == "" || port1 == "" {
-		port0 = "/dev/tty.usbmodemfd131"
-		port1 = "/dev/tty.usbmodemfa141"
+		port0 = "/dev/ttyACM0"
+		port1 = "/dev/ttyACM1"
 	}
 
 	// Serial Port for Barcode Scanner
