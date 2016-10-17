@@ -124,7 +124,10 @@ func readScanner(done <-chan struct{}, serialPort *serial.Port, displayResetTime
 
 		if err := scanner.Err(); err != nil {
 			fmt.Fprintln(os.Stderr, "error:", err)
+		} else {
+			fmt.Println("EOF encountered.")
 		}
+
 	}()
 
 	return out
@@ -294,18 +297,39 @@ func BarcodeToItemNo(barcode string) string {
 	return barcode
 }
 
+
+// ScanCRLines is a split function for a Scanner that returns each line of
+// text, stripped of any trailing end-of-line marker. The returned line may
+// be empty. The end-of-line marker is one carriage return or
+// one newline. In regular expression notation, it is `\r|\n`.
+// The last non-empty line of input will be returned even if it has no
+// newline.
 func ScanCRLines(data []byte, atEOF bool) (advance int, token []byte, err error) {
+	//fmt.Println(data)
+
 	if atEOF && len(data) == 0 {
 		return 0, nil, nil
 	}
 	if i := bytes.IndexByte(data, '\r'); i >= 0 {
-		// We have a full newline-terminated line.
+		// We have a full carriagereturn-terminated line.
 		return i + 1, data[0:i], nil
+	}
+	if i := bytes.IndexByte(data, '\n'); i >= 0 {
+		// We have a full newline-terminated line.
+		return i + 1, dropCR(data[0:i]), nil
 	}
 	// If we're at EOF, we have a final, non-terminated line. Return it.
 	if atEOF {
-		return len(data), data, nil
+		return len(data), dropCR(data), nil
 	}
 	// Request more data.
 	return 0, nil, nil
+}
+
+// dropCR drops a terminal \r from the data.
+func dropCR(data []byte) []byte {
+	if len(data) > 0 && data[len(data)-1] == '\r' {
+		return data[0 : len(data)-1]
+	}
+	return data
 }
